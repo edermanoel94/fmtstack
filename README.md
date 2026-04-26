@@ -13,7 +13,7 @@ Or from source:
 ```bash
 git clone https://github.com/edermanoel94/fmtstack
 cd fmtstack
-go build -o fmtstack .
+go build -o fmtstack ./cmd/fmtstack
 ```
 
 > On Linux the clipboard library needs X11/Wayland headers at build time (`apt install libx11-dev` on Debian/Ubuntu).
@@ -40,11 +40,16 @@ For JSON payloads, a header (timestamp, severity, body, attributes) is printed a
 
 ## How it works
 
-`main.go` is the whole program:
+```
+cmd/fmtstack/      → entry point: pick clipboard or stdin, hand bytes to format.Print
+internal/format/   → JSON detection, header printing, trace walking, coloring
+```
 
-1. Read clipboard bytes.
-2. If they're valid JSON, unmarshal and pull the `Stacktrace` field; otherwise treat the bytes as the trace.
+The flow:
+
+1. Read bytes (clipboard by default, `os.Stdin` with `--stdin`).
+2. If valid JSON, unmarshal the envelope, print the header, take `Stacktrace`. Otherwise treat the bytes as the trace.
 3. Walk the trace line by line, classifying each as a goroutine header, function line, or `file:line` line.
 4. Color each frame. A frame is **user code** if its file path contains **neither** `/usr/local/go/src/` **nor** `/go/pkg/mod/`.
 
-That's it. If you want to understand what `{_, _}` or `+0x2c` mean in the trace itself, see [`STACKTRACE.md`](STACKTRACE.md).
+If you want to understand what `{_, _}` or `+0x2c` mean in the trace itself, see [`STACKTRACE.md`](STACKTRACE.md).

@@ -157,4 +157,4 @@ Always the **last frame** in a block. When a library (`conc`, `errgroup`) does t
 | gray            | dependency directory, `+0xNN` offsets, standalone lines    |
 | bold white      | `file.go:line`                                             |
 
-User code = path that contains **neither** `/usr/local/go/src/` nor `/go/pkg/mod/` (`main.go:65`).
+User code = path that contains **neither** `/usr/local/go/src/` nor `/go/pkg/mod/` (see `emit` in `internal/format/format.go`).
