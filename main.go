@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -32,14 +34,20 @@ var (
 	blueBold   = color.New(color.FgBlue, color.Bold).SprintFunc()
 )
 
-func init() {
-	if err := clipboard.Init(); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
-	data := clipboard.Read(clipboard.FmtText)
+	var data []byte
+	if len(os.Args) > 1 && os.Args[1] == "--stdin" {
+		var err error
+		data, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := clipboard.Init(); err != nil {
+			log.Fatal(err)
+		}
+		data = clipboard.Read(clipboard.FmtText)
+	}
 
 	var (
 		stackTraceData string

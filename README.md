@@ -29,6 +29,13 @@ go build -o fmtstack .
 fmtstack
 ```
 
+Or pipe the trace in instead of using the clipboard:
+
+```bash
+cat panic.log | fmtstack --stdin
+kubectl logs my-pod | fmtstack --stdin
+```
+
 For JSON payloads, a header (timestamp, severity, body, attributes) is printed above the trace.
 
 ## How it works
