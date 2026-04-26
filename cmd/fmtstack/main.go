@@ -24,5 +24,5 @@ func main() {
 		data = clipboard.Read(clipboard.FmtText)
 	}
 
-	format.Print(data)
+	format.Print(os.Stdout, data)
 }

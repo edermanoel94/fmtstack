@@ -2,6 +2,7 @@ package format
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 	"time"
@@ -30,26 +31,26 @@ func severityColor(s string) func(a ...any) string {
 	}
 }
 
-func printPayloadHeader(p PayloadMessage) {
+func printPayloadHeader(w io.Writer, p PayloadMessage) {
 	label := func(s string) string {
 		return gray(fmt.Sprintf("%-10s", s))
 	}
 
 	printed := false
 	if !p.Timestamp.IsZero() {
-		fmt.Println(label("TIMESTAMP"), whiteBold(p.Timestamp.Format(time.RFC3339Nano)))
+		fmt.Fprintln(w, label("TIMESTAMP"), whiteBold(p.Timestamp.Format(time.RFC3339Nano)))
 		printed = true
 	}
 	if p.SeverityText != "" {
-		fmt.Println(label("SEVERITY"), severityColor(p.SeverityText)(p.SeverityText))
+		fmt.Fprintln(w, label("SEVERITY"), severityColor(p.SeverityText)(p.SeverityText))
 		printed = true
 	}
 	if p.Body != "" {
-		fmt.Println(label("BODY"), whiteBold(p.Body))
+		fmt.Fprintln(w, label("BODY"), whiteBold(p.Body))
 		printed = true
 	}
 	if len(p.Attributes) > 0 {
-		fmt.Println(label("ATTRIBUTES"))
+		fmt.Fprintln(w, label("ATTRIBUTES"))
 		keys := make([]string, 0, len(p.Attributes))
 		maxKey := 0
 		for k := range p.Attributes {
@@ -60,7 +61,7 @@ func printPayloadHeader(p PayloadMessage) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Printf("  %s %s %s\n",
+			fmt.Fprintf(w, "  %s %s %s\n",
 				yellow(fmt.Sprintf("%-*s", maxKey, k)),
 				gray("="),
 				whiteBold(p.Attributes[k]))
@@ -68,7 +69,7 @@ func printPayloadHeader(p PayloadMessage) {
 		printed = true
 	}
 	if printed {
-		fmt.Println(gray(strings.Repeat("─", 60)))
-		fmt.Println()
+		fmt.Fprintln(w, gray(strings.Repeat("─", 60)))
+		fmt.Fprintln(w)
 	}
 }

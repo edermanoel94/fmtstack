@@ -3,6 +3,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -21,7 +22,7 @@ var (
 	blueBold   = color.New(color.FgBlue, color.Bold).SprintFunc()
 )
 
-func Print(data []byte) {
+func Print(w io.Writer, data []byte) {
 	var (
 		stackTraceData string
 		payloadMsg     PayloadMessage
@@ -32,7 +33,7 @@ func Print(data []byte) {
 			log.Fatal(err)
 		}
 		stackTraceData = payloadMsg.StackTrace
-		printPayloadHeader(payloadMsg)
+		printPayloadHeader(w, payloadMsg)
 	} else {
 		stackTraceData = string(data)
 	}
@@ -45,7 +46,7 @@ func Print(data []byte) {
 
 	emit := func(funcLine, fileLine string, isCreatedBy bool) {
 		if needBlank {
-			fmt.Println()
+			fmt.Fprintln(w)
 		}
 		isUser := fileLine != "" &&
 			!strings.Contains(fileLine, "/usr/local/go/src/") &&
@@ -53,14 +54,14 @@ func Print(data []byte) {
 
 		switch {
 		case isCreatedBy:
-			fmt.Println(magenta(funcLine))
+			fmt.Fprintln(w, magenta(funcLine))
 		case isUser:
-			fmt.Println(yellowBold(funcLine))
+			fmt.Fprintln(w, yellowBold(funcLine))
 		default:
-			fmt.Println(yellow(funcLine))
+			fmt.Fprintln(w, yellow(funcLine))
 		}
 		if fileLine != "" {
-			fmt.Println(formatFileLine(fileLine, isUser))
+			fmt.Fprintln(w, formatFileLine(fileLine, isUser))
 		}
 		needBlank = true
 	}
@@ -85,9 +86,9 @@ func Print(data []byte) {
 		case isGoroutineHeader(line):
 			flushPending()
 			if needBlank {
-				fmt.Println()
+				fmt.Fprintln(w)
 			}
-			fmt.Println(cyan(line))
+			fmt.Fprintln(w, cyan(line))
 			needBlank = false
 
 		case strings.HasPrefix(line, "\t"):
@@ -97,9 +98,9 @@ func Print(data []byte) {
 				pendingIsCreatedBy = false
 			} else {
 				if needBlank {
-					fmt.Println()
+					fmt.Fprintln(w)
 				}
-				fmt.Println(gray(line))
+				fmt.Fprintln(w, gray(line))
 				needBlank = true
 			}
 
