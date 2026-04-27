@@ -38,7 +38,7 @@ func TestPrintPayloadHeader_AllFields(t *testing.T) {
 		Body:         "oops",
 		SeverityText: "ERROR",
 		Timestamp:    time.Date(2026, 4, 24, 15, 41, 10, 0, time.UTC),
-		Attributes:   map[string]string{"req_id": "abc", "user": "42"},
+		Attributes:   map[string]any{"req_id": "abc", "user": "42"},
 	}
 
 	var buf bytes.Buffer

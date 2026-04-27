@@ -2,6 +2,7 @@ package format
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -32,7 +33,14 @@ func Print(w io.Writer, data []byte) {
 		if err := json.Unmarshal(data, &payloadMsg); err != nil {
 			log.Fatal(err)
 		}
-		stackTraceData = payloadMsg.StackTrace
+		stackTraceAttr, ok := payloadMsg.Attributes["StackTrace"]
+
+		if !ok {
+			log.Fatal(errors.New("StackTrace not in Attributes"))
+		}
+
+		stackTraceData = stackTraceAttr.(string)
+
 		printPayloadHeader(w, payloadMsg)
 	} else {
 		stackTraceData = string(data)

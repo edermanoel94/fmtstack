@@ -1,19 +1,20 @@
 package format
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
 )
 
 type PayloadMessage struct {
-	Body         string            `json:"Body"`
-	SeverityText string            `json:"SeverityText"`
-	StackTrace   string            `json:"Stacktrace"`
-	Attributes   map[string]string `json:"Attributes"`
-	Timestamp    time.Time         `json:"time"`
+	Body         string         `json:"Body"`
+	SeverityText string         `json:"SeverityText"`
+	Attributes   map[string]any `json:"Attributes"`
+	Timestamp    time.Time      `json:"time"`
 }
 
 func severityColor(s string) func(a ...any) string {
@@ -54,6 +55,11 @@ func printPayloadHeader(w io.Writer, p PayloadMessage) {
 		keys := make([]string, 0, len(p.Attributes))
 		maxKey := 0
 		for k := range p.Attributes {
+
+			if k == "StackTrace" {
+				continue
+			}
+
 			keys = append(keys, k)
 			if len(k) > maxKey {
 				maxKey = len(k)
@@ -61,10 +67,21 @@ func printPayloadHeader(w io.Writer, p PayloadMessage) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
+
+			var colHeaderValue any
+
+			switch reflect.ValueOf(p.Attributes[k]).Kind() {
+			case reflect.Struct, reflect.Map, reflect.Slice:
+				complextData, _ := json.Marshal(p.Attributes[k])
+				colHeaderValue = string(complextData)
+			default:
+				colHeaderValue = p.Attributes[k]
+			}
+
 			fmt.Fprintf(w, "  %s %s %s\n",
 				yellow(fmt.Sprintf("%-*s", maxKey, k)),
 				gray("="),
-				whiteBold(p.Attributes[k]))
+				whiteBold(colHeaderValue))
 		}
 		printed = true
 	}
